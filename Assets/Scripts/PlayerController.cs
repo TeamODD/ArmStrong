@@ -49,6 +49,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         playerAnim = GetComponentInChildren<Animator>();
 
@@ -388,9 +389,10 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
 
         // ★ 3. 이동 속도 및 물리 엔진 관성 완전 초기화
-        currentSpeed = 0f;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        currentSpeed = 0f;
         currentGauge = 0f;
         anim.SetFloat("PushSpeed", 0f);
 
