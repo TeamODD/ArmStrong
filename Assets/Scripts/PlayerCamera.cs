@@ -12,15 +12,20 @@ public class PlayerCamera : MonoBehaviour
     [Header("Angle Limits")]
     public float minVerticalAngle = -45f;
     public float maxVerticalAngle = 45f;
-    public float maxHorizontalAngle = 85f; // 탑승 시 좌우 한계 각도
+    public float maxHorizontalAngle = 85f;       // 휠체어 탑승 시 좌우 한계 각도
+    public float crawlMaxHorizontalAngle = 60f;  // ★ 기어갈 때 좌우 한계 각도 (인스펙터에서 조절하세요)
 
-    public bool isDetached = false;        // 쓰러져 있는지 여부
+    [Header("Camera Offsets")]
+    public Vector3 crawlOffset = new Vector3(0f, 0.2f, 0.2f);
+    public float transitionSpeed = 5f;
 
-    // ★ 로컬이 아닌 '월드(World)' 기준의 절대 각도로 변경
+    public bool isDetached = false;
+
     private float absoluteYaw = 0f;
     private float absolutePitch = 0f;
 
     private Vector3 initialOffset;
+    private Vector3 currentOffset;
 
     void Start()
     {
@@ -30,9 +35,9 @@ public class PlayerCamera : MonoBehaviour
         if (targetBody != null)
         {
             initialOffset = transform.localPosition;
-            transform.SetParent(null); // 자식에서 분리
+            currentOffset = initialOffset;
+            transform.SetParent(null);
 
-            // 게임 시작 시, 카메라가 휠체어의 정면을 바라보도록 초기화
             absoluteYaw = targetBody.eulerAngles.y;
         }
     }
@@ -41,8 +46,14 @@ public class PlayerCamera : MonoBehaviour
     {
         if (targetBody == null) return;
 
-        // 위치 따라가기 (항상 플레이어 몸체의 위치 기준)
-        transform.position = targetBody.position + targetBody.TransformDirection(initialOffset);
+        // 1. 상태에 따른 목표 오프셋 결정
+        Vector3 targetOffset = isDetached ? crawlOffset : initialOffset;
+
+        // 2. 부드러운 오프셋 전환
+        currentOffset = Vector3.Lerp(currentOffset, targetOffset, Time.deltaTime * transitionSpeed);
+
+        // 3. 카메라 위치 적용
+        transform.position = targetBody.position + targetBody.TransformDirection(currentOffset);
 
         HandleCameraLook();
     }
@@ -55,41 +66,33 @@ public class PlayerCamera : MonoBehaviour
         float mouseX = mouseDelta.x * mouseSensitivity * 0.1f;
         float mouseY = mouseDelta.y * mouseSensitivity * 0.1f;
 
-        // 1. 상하 회전 (절대 각도)
         absolutePitch -= mouseY;
         absolutePitch = Mathf.Clamp(absolutePitch, minVerticalAngle, maxVerticalAngle);
 
-        // 2. 좌우 회전 (절대 각도)
         absoluteYaw += mouseX;
 
-        // ★ 휠체어에 타고 있을 때만 85도 제한 작동
-        if (!isDetached)
+        // ★ 수정된 부분: 조건문 없이 항상 각도 제한을 하되, 한계값(Limit)만 상태에 따라 바꿉니다.
+        float currentLimitAngle = isDetached ? crawlMaxHorizontalAngle : maxHorizontalAngle;
+        float bodyYaw = targetBody.eulerAngles.y;
+
+        float angleDifference = Mathf.DeltaAngle(bodyYaw, absoluteYaw);
+
+        if (angleDifference > currentLimitAngle)
         {
-            float bodyYaw = targetBody.eulerAngles.y; // 휠체어(몸체)가 바라보는 절대 각도
-
-            // 몸체 방향과 현재 카메라 시선의 각도 차이 계산 (-180 ~ 180도)
-            float angleDifference = Mathf.DeltaAngle(bodyYaw, absoluteYaw);
-
-            // 차이가 85도를 넘어가면, 카메라를 85도 위치에 고정시켜 휠체어가 억지로 밀고 가도록 처리
-            if (angleDifference > maxHorizontalAngle)
-            {
-                absoluteYaw = bodyYaw + maxHorizontalAngle;
-            }
-            else if (angleDifference < -maxHorizontalAngle)
-            {
-                absoluteYaw = bodyYaw - maxHorizontalAngle;
-            }
+            absoluteYaw = bodyYaw + currentLimitAngle;
+        }
+        else if (angleDifference < -currentLimitAngle)
+        {
+            absoluteYaw = bodyYaw - currentLimitAngle;
         }
 
-        // 3. 최종 회전 적용 (휠체어의 회전을 곱하지 않고 독립적으로 적용)
         transform.rotation = Quaternion.Euler(absolutePitch, absoluteYaw, 0f);
     }
 
-    // 휠체어에 다시 탔을 때 고개를 정면으로 초기화
     public void ResetView()
     {
         isDetached = false;
-        absoluteYaw = targetBody.eulerAngles.y; // 휠체어 정면으로 시선 정렬
+        absoluteYaw = targetBody.eulerAngles.y;
         absolutePitch = 0f;
     }
 }
