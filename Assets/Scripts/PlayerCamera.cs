@@ -10,15 +10,14 @@ public class PlayerCamera : MonoBehaviour
     public float mouseSensitivity = 1f;
 
     [Header("Angle Limits")]
-    public float minVerticalAngle = -45f;
-    public float maxVerticalAngle = 45f;
-    public float maxHorizontalAngle = 85f;       // 휠체어 탑승 시 좌우 한계 각도
-    public float crawlMaxHorizontalAngle = 60f;  // ★ 기어갈 때 좌우 한계 각도 (인스펙터에서 조절하세요)
+    public float minVerticalAngle = -50f;
+    public float maxVerticalAngle = 50f;
+    public float maxHorizontalAngle = 70f;       // 휠체어 탑승 시 좌우 한계 각도
+    public float crawlMaxHorizontalAngle = 60f;  // 기어갈 때 좌우 한계 각도
 
     [Header("Camera Offsets")]
-    public Vector3 crawlOffset = new Vector3(0f, 0.2f, 0.2f);
+    public Vector3 crawlOffset = new Vector3(0f, 0.35f, 0.5f);
     public float transitionSpeed = 5f;
-
     public bool isDetached = false;
 
     private float absoluteYaw = 0f;
@@ -71,7 +70,7 @@ public class PlayerCamera : MonoBehaviour
 
         absoluteYaw += mouseX;
 
-        // ★ 수정된 부분: 조건문 없이 항상 각도 제한을 하되, 한계값(Limit)만 상태에 따라 바꿉니다.
+        // 조건문 없이 항상 각도 제한을 하되, 한계값(Limit)만 상태에 따라 바꿉니다.
         float currentLimitAngle = isDetached ? crawlMaxHorizontalAngle : maxHorizontalAngle;
         float bodyYaw = targetBody.eulerAngles.y;
 
