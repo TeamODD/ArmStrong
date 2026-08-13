@@ -17,6 +17,7 @@ public class PlayerCamera : MonoBehaviour
 
     [Header("Camera Offsets")]
     public Vector3 crawlOffset = new Vector3(0f, 0.35f, 0.5f);
+    public Vector3 sitOffset = new Vector3(0f, -0.35f, -0.5f);
     public float transitionSpeed = 5f;
     public bool isDetached = false;
 
@@ -33,10 +34,9 @@ public class PlayerCamera : MonoBehaviour
 
         if (targetBody != null)
         {
-            initialOffset = transform.localPosition;
+            initialOffset = transform.localPosition + sitOffset;
             currentOffset = initialOffset;
             transform.SetParent(null);
-
             absoluteYaw = targetBody.eulerAngles.y;
         }
     }
