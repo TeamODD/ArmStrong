@@ -231,23 +231,38 @@ public class CrawlingController : MonoBehaviour
             humanRb.MoveRotation(Quaternion.Slerp(humanRb.rotation, targetRotation, Time.fixedDeltaTime * 15f));
         }
     }
-
     void CheckMountInput()
     {
-        if (currentWheelchair == null || !canMove || mainCam == null)
+        if (!canMove || mainCam == null)
         {
             if (pressEButtonUI != null && pressEButtonUI.activeSelf)
                 pressEButtonUI.SetActive(false);
 
+            currentWheelchair = null;
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, currentWheelchair.transform.position);
-        Vector3 targetPos = currentWheelchair.transform.position + (Vector3.up * 0.5f);
-        Vector3 dirFromCameraToWheelchair = (targetPos - mainCam.transform.position).normalized;
-        float angle = Vector3.Angle(mainCam.transform.forward, dirFromCameraToWheelchair);
+        Ray ray = mainCam.ViewportPointToRay(
+            new Vector3(0.5f, 0.5f, 0f)
+        );
 
-        if (distance <= mountableDistance && angle <= cameraViewAngle)
+        PlayerController lookedWheelchair = null;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, mountableDistance))
+        {
+            PlayerController wheelchair =
+                hit.collider.GetComponentInParent<PlayerController>();
+
+            if (wheelchair != null)
+            {
+                lookedWheelchair = wheelchair;
+            }
+        }
+
+        // 현재 바라보고 있는 휠체어를 저장
+        currentWheelchair = lookedWheelchair;
+
+        if (currentWheelchair != null)
         {
             if (pressEButtonUI != null && !pressEButtonUI.activeSelf)
                 pressEButtonUI.SetActive(true);

@@ -2,8 +2,11 @@ using UnityEngine;
 
 public class FlashPickUp : MonoBehaviour
 {
-    private bool isPickedUp = false;
+    [Header("Flashlight")]
+    [SerializeField] private Light flashlightLight;
 
+    private bool isPickedUp = false;
+    private bool isLightOn = false;
     public bool IsPickedUp => isPickedUp;
 
     public void Pickup(Transform holdPosition)
@@ -30,5 +33,23 @@ public class FlashPickUp : MonoBehaviour
         transform.SetParent(holdPosition);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
+
+        // 주웠을 때 손전등은 꺼진 상태
+        SetLight(false);
+    }
+
+    public void ToggleLight()
+    {
+        SetLight(!isLightOn);
+    }
+
+    private void SetLight(bool state)
+    {
+        isLightOn = state;
+
+        if (flashlightLight != null)
+        {
+            flashlightLight.enabled = state;
+        }
     }
 }

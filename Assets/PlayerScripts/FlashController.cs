@@ -15,14 +15,21 @@ public class FlashController : MonoBehaviour
     [SerializeField] private GameObject pickupUI;
 
     private FlashPickUp currentFlashlight;
-
+    private FlashPickUp heldFlashlight;
     void Update()
     {
         CheckForFlashlight();
 
-        if (currentFlashlight != null && Keyboard.current.eKey.wasPressedThisFrame)
+        if (currentFlashlight != null &&
+            Keyboard.current.eKey.wasPressedThisFrame)
         {
             PickupFlashlight();
+        }
+
+        if (heldFlashlight != null &&
+            Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            heldFlashlight.ToggleLight();
         }
     }
 
@@ -51,7 +58,9 @@ public class FlashController : MonoBehaviour
 
     private void PickupFlashlight()
     {
-        currentFlashlight.Pickup(flashlightHoldPosition);
+        heldFlashlight = currentFlashlight;
+
+        heldFlashlight.Pickup(flashlightHoldPosition);
 
         currentFlashlight = null;
 
