@@ -5,6 +5,9 @@ public class FlashPickUp : MonoBehaviour
     [Header("Flashlight")]
     [SerializeField] private Light flashlightLight;
 
+    [Header("Tape")]
+    [SerializeField] private GameObject tapeObject;
+
     private bool isPickedUp = false;
     private bool isLightOn = false;
     public bool IsPickedUp => isPickedUp;
@@ -33,6 +36,11 @@ public class FlashPickUp : MonoBehaviour
         transform.SetParent(holdPosition);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
+
+        if (tapeObject != null)
+        {
+            tapeObject.SetActive(true);
+        }
 
         // 주웠을 때 손전등은 꺼진 상태
         SetLight(false);
