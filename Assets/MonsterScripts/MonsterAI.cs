@@ -20,7 +20,6 @@
         [SerializeField] private float viewAngle = 120f;
         [SerializeField] private float eyeHeight = 1.5f;
         [SerializeField] private float lookRotationSpeed = 360f;
-        [SerializeField] private float lookDuration = 2f;
 
         [Header("Chase")]
         [SerializeField] private float patrolSpeed = 0.5f;

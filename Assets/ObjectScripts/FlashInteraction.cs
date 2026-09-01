@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FlashPickUp : MonoBehaviour
+public class FlashInteraction : MonoBehaviour
 {
     [Header("Flashlight")]
     [SerializeField] private Light flashlightLight;
@@ -10,14 +10,19 @@ public class FlashPickUp : MonoBehaviour
 
     private bool isPickedUp = false;
     private bool isLightOn = false;
+
     public bool IsPickedUp => isPickedUp;
 
     public void Pickup(Transform holdPosition)
     {
+        if (isPickedUp)
+            return;
+
         isPickedUp = true;
 
         // Rigidbody가 있다면 물리 정지
         Rigidbody rb = GetComponent<Rigidbody>();
+
         if (rb != null)
         {
             rb.isKinematic = true;
@@ -25,6 +30,7 @@ public class FlashPickUp : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
         }
 
+        // Collider 비활성화
         Collider[] colliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider col in colliders)
@@ -37,17 +43,19 @@ public class FlashPickUp : MonoBehaviour
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
 
+        // 테이프 활성화
         if (tapeObject != null)
         {
             tapeObject.SetActive(true);
         }
 
-        // 주웠을 때 손전등은 꺼진 상태
-        SetLight(false);
     }
 
     public void ToggleLight()
     {
+        if (!isPickedUp)
+            return;
+
         SetLight(!isLightOn);
     }
 

@@ -65,7 +65,6 @@ public class PlayerController : MonoBehaviour
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         rb.centerOfMass = new Vector3(0, -1.0f, 0);
     }
-
     void Update()
     {
         if (isFallenOver) return;
@@ -73,7 +72,6 @@ public class PlayerController : MonoBehaviour
         HandleInput();
         UpdateAnimation();
     }
-
     void FixedUpdate()
     {
         if (isFallenOver) return;
@@ -102,7 +100,7 @@ public class PlayerController : MonoBehaviour
         {
             wheelchairAnim.SetFloat("PushSpeed", 1f);
         }
-    }
+    }  // 플레이어 손 관련 애니메이션
     void HandleInput()
     {
         if (Keyboard.current == null) return;
@@ -123,8 +121,7 @@ public class PlayerController : MonoBehaviour
             float fastDecay = gaugeDecayRate * 2.5f;
             currentGauge = Mathf.Max(currentGauge - (fastDecay * Time.deltaTime), 0f);
         }
-    }
-
+    } // W 연타 게이지 관련
     void MovePlayer()
     {
         // 1. 좌우 회전 및 지형 기울기 맞춤
@@ -213,8 +210,7 @@ public class PlayerController : MonoBehaviour
 
             rb.AddForce(-rightDir * lateralSpeed, ForceMode.VelocityChange);
         }
-    }
-
+    } // 플레이어 움직임 관련
     void AlignToGroundMultiRay()
     {
 
@@ -272,7 +268,7 @@ public class PlayerController : MonoBehaviour
         {
             isGrounded = false;
         }
-    }   
+    } // 경사에 따른 휠체어 오브젝트 기울기
     void FixRotationSingleRay(RaycastHit hit)
     {
         Vector3 projectedForward = Vector3.ProjectOnPlane(transform.forward, hit.normal).normalized;
@@ -281,16 +277,14 @@ public class PlayerController : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(projectedForward, hit.normal);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * alignSpeed));
         }
-    }
-
+    } // 보조 휠체어 기울기
     private void OnCollisionEnter(Collision collision)
     {
         if (isFallenOver || collision.gameObject.CompareTag("Ground")) return;
         if (collision.relativeVelocity.magnitude < crashVelocityThreshold) return;
 
         FallOver(collision);
-    }
-
+    } // 벽에 닿았을 시
     void FallOver(Collision collision)
     {
         isFallenOver = true;
@@ -317,8 +311,7 @@ public class PlayerController : MonoBehaviour
             Random.Range(-randomSpin, randomSpin) * 0.3f
         );
         rb.AddTorque(((transform.forward * (Random.value > 0.5f ? 1f : -1f) * 15f) + randomTorque) * rb.mass, ForceMode.Impulse);
-    }
-
+    } // 휠체어에서 추락 후 휠체어 튕겨남
     public void ResetWheelchairPhysics()
     {
         transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
@@ -330,5 +323,5 @@ public class PlayerController : MonoBehaviour
         currentGauge = 0f;
         isFallenOver = false;
         isGrounded = false;
-    }
+    } // 휠체어 관련 물리 초기화
 }

@@ -40,7 +40,6 @@ public class PlayerCamera : MonoBehaviour
             absoluteYaw = targetBody.eulerAngles.y;
         }
     }
-
     void LateUpdate()
     {
         if (targetBody == null) return;
@@ -56,7 +55,6 @@ public class PlayerCamera : MonoBehaviour
 
         HandleCameraLook();
     }
-
     void HandleCameraLook()
     {
         if (Mouse.current == null) return;
@@ -87,7 +85,6 @@ public class PlayerCamera : MonoBehaviour
 
         transform.rotation = Quaternion.Euler(absolutePitch, absoluteYaw, 0f);
     }
-
     public void ResetView()
     {
         isDetached = false;

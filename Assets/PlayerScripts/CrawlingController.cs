@@ -13,8 +13,7 @@ public class CrawlingController : MonoBehaviour
     public float recoveryTime = 2.0f;
 
     [Header("UI Transition")]
-    public Image fadeImage;
-    public GameObject pressEButtonUI;
+    [SerializeField] private UIManager uiManager;
 
     [Header("Crawling Slope Settings")]
     public LayerMask groundLayer;
@@ -75,15 +74,12 @@ public class CrawlingController : MonoBehaviour
         SetPhysicsEnabled(false);
         this.enabled = false;
     }
-
     void Update()
     {
         if (isMounting) return;
 
         GatherInput();
-        CheckMountInput();
     }
-
     void FixedUpdate()
     {
         if (isMounting) return;
@@ -136,14 +132,12 @@ public class CrawlingController : MonoBehaviour
 
         StartCoroutine(RestoreCollision(wheelchairCols, humanColliders, 1.0f));
         StartCoroutine(RecoveryRoutine());
-    }
-
+    } // 휠체어에서 튕겨나는 처리
     IEnumerator RecoveryRoutine()
     {
         yield return new WaitForSeconds(recoveryTime);
         canMove = true;
-    }
-
+    } // 떨어진 후와 조작 가능 시점 사이 회복 루틴
     void GatherInput()
     {
         if (Keyboard.current == null || !canMove)
@@ -160,8 +154,7 @@ public class CrawlingController : MonoBehaviour
 
         bool isMoving = currentInput.sqrMagnitude > 0.01f;
         anim.SetBool("IsCrawlingMove", isMoving);
-    }
-
+    } // 기어가는 움직임 관련 키 입력
     void MoveCharacterRelativeToCamera()
     {
         if (mainCam == null || !canMove) return;
@@ -230,65 +223,15 @@ public class CrawlingController : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(projectedForward, finalNormal);
             humanRb.MoveRotation(Quaternion.Slerp(humanRb.rotation, targetRotation, Time.fixedDeltaTime * 15f));
         }
-    }
-    void CheckMountInput()
-    {
-        if (!canMove || mainCam == null)
-        {
-            if (pressEButtonUI != null && pressEButtonUI.activeSelf)
-                pressEButtonUI.SetActive(false);
-
-            currentWheelchair = null;
-            return;
-        }
-
-        Ray ray = mainCam.ViewportPointToRay(
-            new Vector3(0.5f, 0.5f, 0f)
-        );
-
-        PlayerController lookedWheelchair = null;
-
-        if (Physics.Raycast(ray, out RaycastHit hit, mountableDistance))
-        {
-            PlayerController wheelchair =
-                hit.collider.GetComponentInParent<PlayerController>();
-
-            if (wheelchair != null)
-            {
-                lookedWheelchair = wheelchair;
-            }
-        }
-
-        // 현재 바라보고 있는 휠체어를 저장
-        currentWheelchair = lookedWheelchair;
-
-        if (currentWheelchair != null)
-        {
-            if (pressEButtonUI != null && !pressEButtonUI.activeSelf)
-                pressEButtonUI.SetActive(true);
-
-            if (Keyboard.current.eKey.wasPressedThisFrame)
-            {
-                if (pressEButtonUI != null)
-                    pressEButtonUI.SetActive(false);
-
-                StartCoroutine(MountRoutine());
-            }
-        }
-        else
-        {
-            if (pressEButtonUI != null && pressEButtonUI.activeSelf)
-                pressEButtonUI.SetActive(false);
-        }
-    }
-
+    } // 움직임 관련 플레이어 및 카메라 처리
+    
     IEnumerator MountRoutine()
     {
         isMounting = true;
         canMove = false;
 
         // 1. 화면 암전
-        yield return StartCoroutine(FadeScreen(0f, 1f, 1.0f));
+        yield return StartCoroutine(uiManager.FadeScreen(0f, 1f, 1.0f));
 
         // [추가] Remount 시 특정 자식 오브젝트의 크기를 원래대로 복구
         if (targetChildTransform != null)
@@ -320,10 +263,20 @@ public class CrawlingController : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         // 4. 화면 밝아짐
-        yield return StartCoroutine(FadeScreen(1f, 0f, 1.0f));
+        yield return StartCoroutine(uiManager.FadeScreen(1f, 0f, 1.0f));
 
         isMounting = false;
         this.enabled = false;
+    } // 휠체어 재탑승 루틴
+    public void Mount(PlayerController targetWheelchair)
+    {
+        if (isMounting)
+            return;
+
+        // 전달받은 휠체어를 내 목표 휠체어로 설정!
+        currentWheelchair = targetWheelchair;
+
+        StartCoroutine(MountRoutine());
     }
 
     void SetPhysicsEnabled(bool enabled)
@@ -344,30 +297,7 @@ public class CrawlingController : MonoBehaviour
         {
             col.isTrigger = !enabled;
         }
-    }
-
-    IEnumerator FadeScale(float startAlpha, float endAlpha, float duration) // (참고용 유지)
-    {
-        yield return null;
-    }
-
-    IEnumerator FadeScreen(float startAlpha, float endAlpha, float duration)
-    {
-        if (fadeImage == null) yield break;
-        float time = 0;
-        Color c = fadeImage.color;
-
-        while (time < duration)
-        {
-            time += Time.deltaTime;
-            c.a = Mathf.Lerp(startAlpha, endAlpha, time / duration);
-            fadeImage.color = c;
-            yield return null;
-        }
-        c.a = endAlpha;
-        fadeImage.color = c;
-    }
-
+    } // 인간 관련 물리 ON/OFF
     IEnumerator RestoreCollision(Collider[] wcCols, Collider[] hcCols, float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -381,5 +311,6 @@ public class CrawlingController : MonoBehaviour
                 }
             }
         }
-    }
+    } // 휠체어와 사람 충돌하지 않도록 처리
+
 }
