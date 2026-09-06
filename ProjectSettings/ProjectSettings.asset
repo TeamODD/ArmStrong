@@ -939,11 +939,11 @@ PlayerSettings:
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
   enableDirectStorage: 0
-  cloudProjectId: 4aa70fbe-720d-4768-b775-ac4bce38d62f
+  cloudProjectId: 2cd8f987-467f-41bc-acc7-a8fb946f479f
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: ArmStrong
-  organizationId: sgisun
+  organizationId: bibidibabididu
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
