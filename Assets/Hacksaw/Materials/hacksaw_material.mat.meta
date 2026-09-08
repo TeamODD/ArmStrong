@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 962e95f05350ee843bda3b59fbe4f2c1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 20499
+  packageName: Hacksaw
+  packageVersion: initial
+  assetPath: Assets/Hacksaw/Materials/hacksaw_material.mat
+  uploadId: 39556
