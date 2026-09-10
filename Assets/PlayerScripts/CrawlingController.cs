@@ -44,10 +44,19 @@ public class CrawlingController : MonoBehaviour
     private Quaternion initialLocalRot;
 
     private bool isMounting = false;
-    private bool canMove = false;
+    private bool canMove = true;
 
     private Vector2 currentInput;
     private float turnSmoothVelocity;
+
+    private bool isHiding = false;
+    public void SetHiding(bool hiding)
+    {
+        isHiding = hiding;
+    }
+    public Transform PlayerTransform => transform;
+    public Rigidbody HumanRb => humanRb;
+    public Collider[] HumanColliders => humanColliders;
 
     void Awake()
     {
@@ -76,25 +85,58 @@ public class CrawlingController : MonoBehaviour
     }
     void Update()
     {
-        if (isMounting) return;
+        if (isMounting || isHiding) return;
 
         GatherInput();
     }
     void FixedUpdate()
     {
-        if (isMounting) return;
+        if (isMounting || isHiding) return;
 
         MoveCharacterRelativeToCamera();
     }
 
+    public bool CanUseInteractions()
+    {
+        return !enabled || (canMove && !isMounting);
+    }
+    public void SetCurrentWheelchair(PlayerController wheelchair)
+    {
+        currentWheelchair = wheelchair;
+    }
+    public bool CanRemountWheelchair(PlayerController wheelchair)
+    {
+        bool result =
+        enabled &&
+        canMove &&
+        !isMounting &&
+        wheelchair != null &&
+        wheelchair.isFallenOver;
+
+        /*Debug.Log(
+            $"Remount 검사: " +
+            $"enabled={enabled}, " +
+            $"canMove={canMove}, " +
+            $"isMounting={isMounting}, " +
+            $"wheelchairNull={wheelchair == null}, " +
+            $"sameWheelchair={currentWheelchair == wheelchair}, " +
+            $"fallen={wheelchair != null && wheelchair.isFallenOver}"
+        );*/
+
+        return result;
+    }
+    public void DetachFromWheelchair()
+    {
+        transform.SetParent(null);
+        SetPhysicsEnabled(true);
+    }
     public void EjectFromWheelchair(Vector3 normal, PlayerController wheelchair)
     {
         currentWheelchair = wheelchair;
         this.enabled = true;
         canMove = false;
 
-        transform.SetParent(null);
-        SetPhysicsEnabled(true);
+        DetachFromWheelchair();
 
         // [추가] Eject 시 특정 자식 오브젝트만 크기 변경
         if (targetChildTransform != null)
@@ -279,7 +321,7 @@ public class CrawlingController : MonoBehaviour
         StartCoroutine(MountRoutine());
     }
 
-    void SetPhysicsEnabled(bool enabled)
+    public void SetPhysicsEnabled(bool enabled)
     {
         humanRb.isKinematic = !enabled;
 
@@ -313,4 +355,16 @@ public class CrawlingController : MonoBehaviour
         }
     } // 휠체어와 사람 충돌하지 않도록 처리
 
+    public void SetHidingAnimation(bool hiding)
+    {
+        if(hiding == true)
+        {
+            anim.applyRootMotion = true;
+            if (targetChildTransform != null)
+            {
+                targetChildTransform.localScale = ejectChildScale;
+            }
+        }
+        anim.SetBool("IsHiding", hiding);
+    }
 }

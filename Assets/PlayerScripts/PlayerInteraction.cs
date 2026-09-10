@@ -9,13 +9,24 @@ public class PlayerInteraction : MonoBehaviour
 
     [Header("Ray")]
     [SerializeField] private float interactionDistance = 3f;
+    private float interactionDistanceInWheelchair;
 
     [Header("UI")]
     [SerializeField] private UIManager uiManager;
 
+    [Header("Bed")]
+    [SerializeField] private BedManager bedManager;
+
     private FlashInteraction currentFlashlight;
     private BedInteraction currentBed;
     private PlayerController currentWheelchair;
+    private CrawlingController crawlingController;
+
+    private void Awake()
+    {
+        crawlingController = GetComponent<CrawlingController>();
+        interactionDistanceInWheelchair = interactionDistance + 1f;
+    }
 
     private void Update()
     {
@@ -35,8 +46,18 @@ public class PlayerInteraction : MonoBehaviour
         currentBed = null;
         currentWheelchair = null;
 
+        if (crawlingController != null &&
+            !crawlingController.CanUseInteractions())
+            return;
+
         if (playerCamera == null)
             return;
+
+        float currentInteractionDistance =
+        crawlingController != null && crawlingController.enabled
+        ? interactionDistance
+        : interactionDistanceInWheelchair;
+
 
         Ray ray = playerCamera.ViewportPointToRay(
             new Vector3(0.5f, 0.5f, 0f)
@@ -45,7 +66,7 @@ public class PlayerInteraction : MonoBehaviour
         if (Physics.Raycast(
             ray,
             out RaycastHit hit,
-            interactionDistance))
+            currentInteractionDistance))
         {
             // -------------------------
             // »Ÿ√ºæÓ
@@ -54,7 +75,8 @@ public class PlayerInteraction : MonoBehaviour
             PlayerController wheelchair =
                 hit.collider.GetComponentInParent<PlayerController>();
 
-            if (wheelchair != null)
+            if (crawlingController != null &&
+                crawlingController.CanRemountWheelchair(wheelchair))
             {
                 currentWheelchair = wheelchair;
                 return;
@@ -105,12 +127,23 @@ public class PlayerInteraction : MonoBehaviour
 
     private void ExecuteInteraction()
     {
+        if (bedManager != null && bedManager.IsHiding)
+        {
+            bedManager.ExitBed();
+            return;
+        }
+
+        if (crawlingController != null &&
+            !crawlingController.CanUseInteractions())
+            return;
+
         // »Ÿ√ºæÓ
         if (currentWheelchair != null)
         {
-            uiManager.SetWheelchairUI(false);
+            if (uiManager != null)
+                uiManager.SetWheelchairUI(false);
 
-            GetComponent<CrawlingController>().Mount(currentWheelchair);
+            crawlingController.Mount(currentWheelchair);
             return;
         }
 

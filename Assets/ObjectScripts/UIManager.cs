@@ -13,14 +13,20 @@ public class UIManager : MonoBehaviour
 
     public void SetInteractionUI(bool active)
     {
-        if (interactionEButtonUI != null)
+        if (interactionEButtonUI != null &&
+            interactionEButtonUI.activeSelf != active)
+        {
             interactionEButtonUI.SetActive(active);
+        }
     }
 
     public void SetWheelchairUI(bool active)
     {
-        if (wheelchairEButtonUI != null)
+        if (wheelchairEButtonUI != null &&
+            wheelchairEButtonUI.activeSelf != active)
+        {
             wheelchairEButtonUI.SetActive(active);
+        }
     }
 
     public void HideAllInteractionUI()
