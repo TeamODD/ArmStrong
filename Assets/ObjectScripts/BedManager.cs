@@ -117,7 +117,7 @@ public class BedManager : MonoBehaviour
     }
     private IEnumerator ExitBedRoutine()
     {
-        if (humanController == null)
+        if (humanController == null || currentHidePoint == null)
             yield break;
 
         // --------------------------------
@@ -132,50 +132,51 @@ public class BedManager : MonoBehaviour
         // 플레이어가 바라보던 좌우 방향으로 탈출
         // --------------------------------
 
-        if (mainCam != null)
+        // --------------------------------
+        // HidePoint 기준 정면으로 2f 이동
+        // --------------------------------
+
+        Vector3 exitPosition =
+            currentHidePoint.position +
+            currentHidePoint.forward * 2f;
+
+        // --------------------------------
+        // 플레이어 방향도 HidePoint의 정면 방향으로 설정
+        // --------------------------------
+
+        Vector3 lookDirection = currentHidePoint.forward;
+        lookDirection.y = 0f;
+
+        if (lookDirection.sqrMagnitude > 0.001f)
         {
-            Vector3 lookDirection = mainCam.transform.forward;
+            lookDirection.Normalize();
 
-            // 상하 방향 제거
-            lookDirection.y = 0f;
-
-            if (lookDirection.sqrMagnitude > 0.001f)
-            {
-                lookDirection.Normalize();
-
-                // 플레이어를 바라보던 방향을
-                // 플레이어의 정면(0도)으로 설정
-                humanController.transform.rotation =
-                    Quaternion.LookRotation(lookDirection);
-
-                // --------------------------------
-                // 현재 위치에서 정면으로 이동
-                // --------------------------------
-
-                Vector3 exitPosition =
-                    humanController.transform.position +
-                    humanController.transform.forward * exitDistance;
-
-                // --------------------------------
-                // 바닥 탐색용 시작 위치
-                // --------------------------------
-
-                Vector3 rayOrigin =
-                    exitPosition + Vector3.up * exitHeight;
-
-                if (Physics.Raycast(
-                    rayOrigin,
-                    Vector3.down,
-                    out RaycastHit groundHit,
-                    groundRayDistance,
-                    humanController.groundLayer))
-                {
-                    exitPosition.y = groundHit.point.y;
-                }
-
-                humanController.transform.position = exitPosition;
-            }
+            humanController.transform.rotation =
+                Quaternion.LookRotation(lookDirection);
         }
+
+        // --------------------------------
+        // 바닥 탐색
+        // --------------------------------
+
+        Vector3 rayOrigin =
+            exitPosition + Vector3.up * exitHeight;
+
+        if (Physics.Raycast(
+            rayOrigin,
+            Vector3.down,
+            out RaycastHit groundHit,
+            groundRayDistance,
+            humanController.groundLayer))
+        {
+            exitPosition.y = groundHit.point.y;
+        }
+
+        // --------------------------------
+        // 절대 위치로 이동
+        // --------------------------------
+
+        humanController.transform.position = exitPosition;
 
         // --------------------------------
         // 숨기 상태 종료
