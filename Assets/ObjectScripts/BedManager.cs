@@ -169,9 +169,9 @@ public class BedManager : MonoBehaviour
             groundRayDistance,
             humanController.groundLayer))
         {
-            exitPosition.y = groundHit.point.y;
+            exitPosition.y = groundHit.point.y + 0.1f;
         }
-
+            
         // --------------------------------
         // 절대 위치로 이동
         // --------------------------------

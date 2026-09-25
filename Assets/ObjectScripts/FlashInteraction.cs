@@ -9,7 +9,7 @@ public class FlashInteraction : MonoBehaviour
     [SerializeField] private GameObject tapeObject;
 
     private bool isPickedUp = false;
-    private bool isLightOn = false;
+    private bool isLightOn = true;
 
     public bool IsPickedUp => isPickedUp;
 

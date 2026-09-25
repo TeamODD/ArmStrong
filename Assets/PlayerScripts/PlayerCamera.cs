@@ -30,6 +30,8 @@ public class PlayerCamera : MonoBehaviour
     private Vector3 initialOffset;
     private Vector3 currentOffset;
 
+    private bool isCameraLocked;
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -46,7 +48,7 @@ public class PlayerCamera : MonoBehaviour
     void LateUpdate()
     {
         if (targetBody == null) return;
-
+        if (isCameraLocked) return;
         // 1. 상태에 따른 목표 오프셋 결정
         Vector3 targetOffset = isDetached ? crawlOffset : initialOffset;
 
@@ -184,5 +186,11 @@ public class PlayerCamera : MonoBehaviour
 
         absoluteYaw = targetBody.eulerAngles.y;
         absolutePitch = 0f;
+    }
+
+
+    public void SetCameraLocked(bool locked)
+    {
+        isCameraLocked = locked;
     }
 }
