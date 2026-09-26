@@ -324,7 +324,7 @@ public class PlayerInteraction : MonoBehaviour
         }
 
         // --------------------------------
-        // ≈È
+        // ≈È¿∏∑Œ Ω‰æÓæﬂ«“ π∞√º
         // --------------------------------
 
         if (currentSawCut != null)

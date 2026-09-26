@@ -40,6 +40,9 @@
         private bool isDetected = false;
         private bool isLookingAtPlayer = false;
         private bool isChasing = false;
+        private bool isForcedChasing = false;
+        public bool IsChasing => isChasing;
+
         private bool isInvestigating = false;
         private bool isLookingAround = false; // �߰�: �ֺ��� �θ����Ÿ��� ����
 
@@ -65,8 +68,14 @@
 
         private void Update()
         {
-            // ���� �̹߰� ������ �� ����
-            if (!isDetected)
+
+            if (isForcedChasing)
+            {
+                ForcedChasePlayer();
+                return;
+            }
+        // ���� �̹߰� ������ �� ����
+        if (!isDetected)
             {
                 if (CanSeePlayer())
                 {
@@ -286,23 +295,36 @@
 
         private void InvestigateLastSeenPosition()
         {
-            // ������ ��ġ�� �޷����� ���߿� �ٽ� �þ߿� ������ ��� ���� �簳
+            // 마지막 위치로 이동하는 중 플레이어를 다시 발견
             if (CanSeePlayer())
             {
                 ResumeChase();
                 return;
             }
 
+            // 목적지 계산 중
             if (agent.pathPending)
                 return;
 
-            // ������ ��� ��ġ ����
+            // 마지막 위치에 도착
             if (agent.remainingDistance <= arrivalDistance)
             {
                 isInvestigating = false;
-                // �ֺ��� �ѷ����� �ڷ�ƾ ����
+
                 StartCoroutine(LookAroundRoutine());
+                return;
             }
+
+            // --------------------------------
+            // 마지막 플레이어 위치로 이동하는 동안
+            // 항상 추적 속도/애니메이션 유지
+            // --------------------------------
+
+            agent.speed = chaseSpeed;
+            agent.isStopped = false;
+
+            animator.SetBool("IsRunning", true);
+            animator.SetBool("IsWalking", false);
         }
         private void UpdateLastSeen(Vector3 currentTargetPos)
         {
@@ -442,8 +464,77 @@
             return false;
         }
 
-        // OnDrawGizmosSelected ���� ����...
-        private void OnDrawGizmosSelected()
+    public void ForceScreamAndChase()
+    {
+        StopAllCoroutines();
+
+        isDetected = true;
+        isLookingAtPlayer = false;
+        isChasing = false;
+        isInvestigating = false;
+        isLookingAround = false;
+
+        agent.isStopped = true;
+
+        animator.SetBool("IsWalking", false);
+        animator.SetBool("IsRunning", false);
+
+        StartCoroutine(ForceScreamRoutine());
+    }
+
+    private IEnumerator ForceScreamRoutine()
+    {
+        Debug.Log("강제 고함!");
+
+        animator.SetTrigger("Scream");
+
+        if (monsterHowl != null)
+        {
+            monsterHowl.OnDetected();
+        }
+
+        float screamDuration = 2.5f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < screamDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 고함이 끝난 뒤부터 무조건 추적
+        isForcedChasing = true;
+        isChasing = true;
+
+        agent.isStopped = false;
+        agent.speed = chaseSpeed;
+
+        animator.SetBool("IsRunning", true);
+        animator.SetBool("IsWalking", false);
+
+        if (monsterHowl != null)
+        {
+            monsterHowl.OnChase();
+        }
+    }
+    private void ForcedChasePlayer()
+    {
+        if (player == null)
+            return;
+
+        Transform target =
+            IsPlayerOnWheelchair() ? wheelchair : player;
+
+        agent.isStopped = false;
+        agent.speed = chaseSpeed;
+
+        agent.SetDestination(target.position);
+
+        animator.SetBool("IsRunning", true);
+        animator.SetBool("IsWalking", false);
+    }
+    // OnDrawGizmosSelected ���� ����...
+    private void OnDrawGizmosSelected()
         {
             Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
             Gizmos.color = Color.yellow;
