@@ -27,16 +27,21 @@
         [Header("Lost Target")]
         [SerializeField] private float lostSightGraceTime = 1f;
 
+        // audio
+        [Header("Chase Audio")]
+        [SerializeField] private ChaseAudioManager chaseAudio;
+        [Header("Monster Sound")]
+        [SerializeField] private MonsterHowlAudio monsterHowl;
         private float lastTimePlayerSeen;
         private Vector3 lastSeenPosition;
         private Vector3 lastKnownDirection = Vector3.forward;
 
-        // »óÅÂ °ü¸® º¯¼öµé
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         private bool isDetected = false;
         private bool isLookingAtPlayer = false;
         private bool isChasing = false;
         private bool isInvestigating = false;
-        private bool isLookingAround = false; // Ãß°¡: ÁÖº¯À» µÎ¸®¹ø°Å¸®´Â »óÅÂ
+        private bool isLookingAround = false; // ï¿½ß°ï¿½: ï¿½Öºï¿½ï¿½ï¿½ ï¿½Î¸ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
         private NavMeshAgent agent;
         private int currentPoint = 0;
@@ -60,7 +65,7 @@
 
         private void Update()
         {
-            // Æò»ó½Ã ¹Ì¹ß°ß »óÅÂÀÏ ¶§ °¨Áö
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (!isDetected)
             {
                 if (CanSeePlayer())
@@ -69,34 +74,34 @@
                 }
             }
 
-            // ÇÃ·¹ÀÌ¾î¸¦ Ã³À½ ¹ß°ßÇÏ°í ºñ¸íÁö¸£±â À§ÇØ ¹Ù¶óº¸´Â Áß
+            // ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ Ã³ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¶óº¸´ï¿½ ï¿½ï¿½
             if (isLookingAtPlayer)
             {
                 LookAtPlayer();
                 return;
             }
 
-            // ÃßÀû Áß
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
             if (isChasing)
             {
                 ChasePlayer();
                 return;
             }
 
-            // ³õÄ£ ÁöÁ¡À¸·Î ´Þ·Á°¡¸ç Á¶»ç Áß
+            // ï¿½ï¿½Ä£ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
             if (isInvestigating)
             {
                 InvestigateLastSeenPosition();
                 return;
             }
 
-            // µµÂø ÈÄ Á¦ÀÚ¸®¿¡¼­ µÎ¸®¹ø°Å¸®´Â Áß (Update¿¡¼­´Â ¾Æ¹«°Íµµ ¾ÈÇÏ°í ÄÚ·çÆ¾ÀÌ Ã³¸®)
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¸ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½ (Updateï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ú·ï¿½Æ¾ï¿½ï¿½ Ã³ï¿½ï¿½)
             if (isLookingAround)
             {
                 return;
             }
 
-            // ±âÁ¸ ¼øÂû
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (patrolPoints.Length == 0 || isWaiting)
                 return;
 
@@ -155,7 +160,15 @@
             agent.isStopped = true;
             animator.SetBool("IsWalking", false);
 
-            Debug.Log("ÇÃ·¹ÀÌ¾î ¹ß°ß!");
+            Debug.Log("ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ß°ï¿½!");
+
+            if (chaseAudio != null)
+            {
+                chaseAudio.StartChase();
+            }
+
+            if (monsterHowl != null)
+            monsterHowl.OnDetected();
         }
 
         private void LookAtPlayer()
@@ -185,7 +198,7 @@
         {
             Debug.Log("Scream!");
 
-            // Ãß°¡: ¾Ö´Ï¸ÞÀÌÅÍÀÇ Scream Æ®¸®°Å ÀÛµ¿
+            // ï¿½ß°ï¿½: ï¿½Ö´Ï¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Scream Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ûµï¿½
             animator.SetTrigger("Scream");
 
             float screamDuration = 2.5f;
@@ -206,7 +219,7 @@
             ResumeChase();
         }
 
-        // ÃßÀû »óÅÂ¸¦ ÄÑ´Â °øÅë ¸Þ¼­µå (³õÃÆ´Ù°¡ ´Ù½Ã Ã£¾ÒÀ» ¶§ Àç»ç¿ë)
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½Ñ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Æ´Ù°ï¿½ ï¿½Ù½ï¿½ Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
         private void ResumeChase()
         {
             isChasing = true;
@@ -218,7 +231,10 @@
 
             animator.SetBool("IsRunning", true);
             animator.SetBool("IsWalking", false);
-            Debug.Log("ÃßÀû Àç°³!");
+            Debug.Log("ï¿½ï¿½ï¿½ï¿½ ï¿½ç°³!");
+
+            if (monsterHowl != null)
+                monsterHowl.OnChase();
         }
 
         private void ChasePlayer()
@@ -227,7 +243,7 @@
 
             if (CanSeePlayer())
             {
-                // ½ÇÁ¦·Î ÇÃ·¹ÀÌ¾î¸¦ º¸°í ÀÖÀ½
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 lastTimePlayerSeen = Time.time;
 
                 UpdateLastSeen(target.position);
@@ -236,37 +252,41 @@
             }
             else
             {
-                // ¸¶Áö¸·À¸·Î ½ÇÁ¦ ½Ã¾ß¿¡¼­ º» ÀÌÈÄ Áö³­ ½Ã°£
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¾ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
                 float timeSinceLastSeen = Time.time - lastTimePlayerSeen;
 
-                // ¡Ú ½Ã¾ß¿¡¼­ »ç¶óÁ®µµ ÀÏÁ¤ ½Ã°£ µ¿¾ÈÀº
-                // ÇÃ·¹ÀÌ¾îÀÇ ÇöÀç À§Ä¡¸¦ °è¼Ó ¾Ë°í ÃßÀû
+                // ï¿½ï¿½ ï¿½Ã¾ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë°ï¿½ ï¿½ï¿½ï¿½ï¿½
                 if (timeSinceLastSeen <= lostSightGraceTime)
                 {
-                    // ÇÃ·¹ÀÌ¾îÀÇ ½Ç½Ã°£ À§Ä¡·Î ÀÌµ¿
+                    // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½
                     UpdateLastSeen(target.position);
                     agent.isStopped = false;
                     agent.SetDestination(target.position);
 
-                    Debug.Log("½Ã¾ß ¹ÛÀÌÁö¸¸ ÇÃ·¹ÀÌ¾î À§Ä¡¸¦ °è¼Ó ÃßÀû Áß...");
+                    Debug.Log("ï¿½Ã¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½...");
                 }
                 else
                 {
-                    // 1ÃÊ°¡ Áö³ª¸é ±×¶§ºÎÅÍ ¸¶Áö¸· À§Ä¡¸¸ ±â¾ï
+                    // 1ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¶ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½
                     isChasing = false;
                     isInvestigating = true;
 
                     agent.isStopped = false;
                     agent.SetDestination(lastSeenPosition);
 
-                    Debug.Log("ÇÃ·¹ÀÌ¾î À§Ä¡¸¦ ¿ÏÀüÈ÷ ³õÃÆ½À´Ï´Ù!");
+                    Debug.Log("ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ½ï¿½ï¿½Ï´ï¿½!");
+
+                    // Only stop chase howl after actually losing the target.
+                    if (monsterHowl != null)
+                        monsterHowl.OnSearch();
                 }
             }
         }
 
         private void InvestigateLastSeenPosition()
         {
-            // ¸¶Áö¸· À§Ä¡·Î ´Þ·Á°¡´Â µµÁß¿¡ ´Ù½Ã ½Ã¾ß¿¡ µé¾î¿À¸é Áï½Ã ÃßÀû Àç°³
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½Ù½ï¿½ ï¿½Ã¾ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ç°³
             if (CanSeePlayer())
             {
                 ResumeChase();
@@ -276,70 +296,71 @@
             if (agent.pathPending)
                 return;
 
-            // ¸¶Áö¸· ¸ñ°Ý À§Ä¡ µµÂø
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
             if (agent.remainingDistance <= arrivalDistance)
             {
                 isInvestigating = false;
-                // ÁÖº¯À» µÑ·¯º¸´Â ÄÚ·çÆ¾ ½ÃÀÛ
+                // ï¿½Öºï¿½ï¿½ï¿½ ï¿½Ñ·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·ï¿½Æ¾ ï¿½ï¿½ï¿½ï¿½
                 StartCoroutine(LookAroundRoutine());
             }
         }
         private void UpdateLastSeen(Vector3 currentTargetPos)
         {
-            // 1. ÀÌÀü À§Ä¡¿Í ÇöÀç À§Ä¡¸¦ ºñ±³ÇÏ¿© ÇÃ·¹ÀÌ¾îÀÇ ÀÌµ¿ ¹æÇâ °è»ê
+            // 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
             Vector3 moveDir = currentTargetPos - lastSeenPosition;
-            moveDir.y = 0f; // »óÇÏ ³ôÀÌ´Â ¹«½Ã
+            moveDir.y = 0f; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-            // ÇÃ·¹ÀÌ¾î°¡ Á¶±ÝÀÌ¶óµµ ¿òÁ÷¿´´Ù¸é ¹æÇâÀ» °»½Å (°¡¸¸È÷ ¼­ÀÖ¾ú´Ù¸é ÀÌÀü ¹æÇâ À¯Áö)
+            // ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
             if (moveDir.sqrMagnitude > 0.01f)
             {
                 lastKnownDirection = moveDir.normalized;
             }
 
-            // 2. ¸¶Áö¸· À§Ä¡ °»½Å
+            // 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
             lastSeenPosition = currentTargetPos;
         }
 
-        // µµÂø ÈÄ Á¦ÀÚ¸®¿¡¼­ ÁÖº¯À» Å½»öÇÏ´Â ÄÚ·çÆ¾
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Öºï¿½ï¿½ï¿½ Å½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ú·ï¿½Æ¾
         private IEnumerator LookAroundRoutine()
         {
-            Debug.Log("¸¶Áö¸· ¸ñ°Ý À§Ä¡ µµÂø. ÁÖº¯À» µÑ·¯º¾´Ï´Ù.");
+            Debug.Log("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½. ï¿½Öºï¿½ï¿½ï¿½ ï¿½Ñ·ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
             isLookingAround = true;
             agent.isStopped = true;
 
             animator.SetBool("IsRunning", false);
             animator.SetBool("IsWalking", false);
-            // ÇÊ¿äÇÏ´Ù¸é ÀÌ°÷¿¡ "ÁÖº¯À» µÑ·¯º¸´Â ¾Ö´Ï¸ÞÀÌ¼Ç"À» Ãß°¡ÇÒ ¼ö ÀÖ½À´Ï´Ù.
+            // ï¿½Ê¿ï¿½ï¿½Ï´Ù¸ï¿½ ï¿½Ì°ï¿½ï¿½ï¿½ "ï¿½Öºï¿½ï¿½ï¿½ ï¿½Ñ·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½"ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
 
-            // 1´Ü°è: ÇÃ·¹ÀÌ¾î°¡ µµ¸ÁÄ£(»ç¶óÁø) ¹æÇâÀ¸·Î È¸ÀüÇÏ±â
+            // 1ï¿½Ü°ï¿½: ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½Ä£(ï¿½ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½Ï±ï¿½
             if (lastKnownDirection != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(lastKnownDirection);
 
-                // ¸ó½ºÅÍ°¡ ÇØ´ç ¹æÇâÀ» °ÅÀÇ ´Ù ¹Ù¶óº¼ ¶§±îÁö È¸Àü
+                // ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ù¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½
                 while (Quaternion.Angle(transform.rotation, targetRotation) > 5f)
                 {
-                    // È¸ÀüÇÏ´Â µµÁß ¹ß°ßÇÏ¸é Áï½Ã ÃßÀû Àç°³
+                    // È¸ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ç°³
                     if (CanSeePlayer()) { ResumeChase(); yield break; }
 
                     transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, lookRotationSpeed * Time.deltaTime);
                     yield return null;
                 }
+
             }
 
-            float lookTime = 4f; // 4ÃÊ°£ ÁÖº¯ Å½»ö
+            float lookTime = 4f; // 4ï¿½Ê°ï¿½ ï¿½Öºï¿½ Å½ï¿½ï¿½
             float elapsed = 0f;
 
             while (elapsed < lookTime)
             {
-                // µÎ¸®¹ø°Å¸®´Â µµÁß ´Ù½Ã ¹ß°ß!
+                // ï¿½Î¸ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ß°ï¿½!
                 if (CanSeePlayer())
                 {
                     ResumeChase();
-                    yield break; // ÄÚ·çÆ¾ Áï½Ã Á¾·á
+                    yield break; // ï¿½Ú·ï¿½Æ¾ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 }
 
-                // ÁÂ¿ì·Î ºù±Ûºù±Û µ¹¸é¼­ ½Ã¾ß Å½»ö (¿¹: »çÀÎ °î¼±À» ÀÌ¿ëÇÑ ºÎµå·¯¿î ½ºÀ¬)
+                // ï¿½Â¿ï¿½ï¿½ ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½é¼­ ï¿½Ã¾ï¿½ Å½ï¿½ï¿½ (ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ ï¿½î¼±ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ ï¿½Îµå·¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
                 float turnSpeed = Mathf.Sin(elapsed * Mathf.PI) * 120f;
                 transform.Rotate(Vector3.up, turnSpeed * Time.deltaTime);
 
@@ -347,10 +368,20 @@
                 yield return null;
             }
 
-            // ³¡±îÁö ¸ø Ã£À½ -> ÃÊ±âÈ­ ÈÄ ¼øÂû·Î º¹±Í
-            Debug.Log("ÇÃ·¹ÀÌ¾î¸¦ Ã£Áö ¸øÇß½À´Ï´Ù. ¼øÂû·Î º¹±ÍÇÕ´Ï´Ù.");
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã£ï¿½ï¿½ -> ï¿½Ê±ï¿½È­ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            Debug.Log("ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.");
             isLookingAround = false;
             isDetected = false;
+
+            // í”Œë ˆì´ì–´ë¥¼ ì™„ì „ížˆ ë†“ì³¤ì„ ë•Œ ìŒì•… ë³µêµ¬
+            if (chaseAudio != null)
+            {
+                chaseAudio.StopChase();
+            }
+
+            // Resume idle howls only after finishing the search.
+            if (monsterHowl != null)
+                monsterHowl.OnCalm();
 
             MoveToNextPoint();
         }
@@ -373,7 +404,7 @@
             Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
             Transform visionTarget = IsPlayerOnWheelchair() ? wheelchair : player;
 
-            // Å¸°ÙÀÇ À§Ä¡¸¦ ¹ß³¡ÀÌ ¾Æ´Ñ °¡½¿(¾à 1~1.5m) ³ôÀÌ·Î º¸Á¤
+            // Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ß³ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ 1~1.5m) ï¿½ï¿½ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½
             float targetHeightOffset = IsPlayerOnWheelchair() ? 1.0f : 0.3f;
 
             Vector3 targetCenterPos = visionTarget.position + Vector3.up * targetHeightOffset;
@@ -381,7 +412,7 @@
             Vector3 directionToTarget = targetCenterPos - eyePosition;
             float real3DDistance = directionToTarget.magnitude;
 
-            // 1. ¼öÆò °Å¸® Ã¼Å©
+            // 1. ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ Ã¼Å©
             Vector3 flatDirectionToTarget = directionToTarget;
             flatDirectionToTarget.y = 0f;
             float flatDistance = flatDirectionToTarget.magnitude;
@@ -389,7 +420,7 @@
             if (flatDistance > viewDistance)
                 return false;
 
-            // 2. Á¤¸é Ã¼Å© (ÃßÀû ÁßÀÏ ¶§´Â ½Ã¾ß°¢ Á¦ÇÑÀ» ¹«½ÃÇÏ¿© ¿·À¸·Î ºü¸£°Ô Áö³ª°¡µµ ³õÄ¡Áö ¾ÊÀ½)
+            // 2. ï¿½ï¿½ï¿½ï¿½ Ã¼Å© (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¾ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
             if (!isChasing)
             {
                 float angle = Vector3.Angle(transform.forward, flatDirectionToTarget);
@@ -397,7 +428,7 @@
                     return false;
             }
 
-            // 3. Raycast (¹ß³¡ÀÌ ¾Æ´Ñ °¡½¿ ³ôÀÌ·Î ½ô)
+            // 3. Raycast (ï¿½ß³ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì·ï¿½ ï¿½ï¿½)
             if (Physics.Raycast(eyePosition, directionToTarget.normalized, out RaycastHit hit, real3DDistance))
             {
                 if (IsValidVisionTarget(hit.transform))
@@ -411,7 +442,7 @@
             return false;
         }
 
-        // OnDrawGizmosSelected ·ÎÁ÷ À¯Áö...
+        // OnDrawGizmosSelected ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½...
         private void OnDrawGizmosSelected()
         {
             Vector3 eyePosition = transform.position + Vector3.up * eyeHeight;
